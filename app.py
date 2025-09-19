@@ -82,7 +82,7 @@ def main():
 
     # Header
     st.title("🏪SmartInventory - Retail Forecasting Platform")
-     st.markdown("### ~ [Varshith Sriramoju](https://www.linkedin.com/in/varshith-sriramoju-58141221b/)")
+    st.markdown("### ~ [Varshith Sriramoju](https://www.linkedin.com/in/varshith-sriramoju-58141221b/)")
     st.markdown("**Advanced inventory management and demand forecasting for retail businesses**")
 
     st.markdown("---")
