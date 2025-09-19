@@ -1,5 +1,7 @@
 # SmartInventory (StockPulse)
 
+[(Click here for Live Demo)](https://smartinventorymachinelearning.streamlit.app/)
+
 A Streamlit-based retail forecasting and inventory optimization app. Upload sales data, explore trends, generate demand forecasts, and get inventory recommendations.
 
 ## Features
