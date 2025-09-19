@@ -30,26 +30,26 @@ def init_components():
 def main():
     st.title("🔮 Sales Forecasting")
     st.markdown("Generate ML-powered demand forecasts for your products")
-    
+
     db, forecasting_engine = init_components()
-    
+
     # Check if data exists
     sales_data = db.get_sales_data()
-    
+
     if sales_data is None or sales_data.empty:
         st.warning("📥 No sales data available. Please upload data first using the **Data Upload** page.")
         return
-    
+
     # Get unique products
     products = sorted(sales_data['product_name'].unique().tolist())
-    
+
     st.success(f"✅ Ready to forecast for {len(products)} products")
-    
+
     # Forecasting configuration
     st.header("⚙️ Forecast Configuration")
-    
+
     col1, col2, col3, col4 = st.columns(4)
-    
+
     with col1:
         selected_products = st.multiselect(
             "Select Products for Forecasting",
@@ -57,7 +57,7 @@ def main():
             default=products[:min(5, len(products))],
             help="Select up to 10 products for forecasting"
         )
-    
+
     with col2:
         forecast_days = st.number_input(
             "Forecast Period (days)",
@@ -66,14 +66,14 @@ def main():
             value=30,
             help="Number of days to forecast into the future"
         )
-    
+
     with col3:
         model_type = st.selectbox(
             "Model Type",
             ["Random Forest", "Linear Regression", "ARIMA"],
             help="Choose the forecasting algorithm"
         )
-    
+
     with col4:
         confidence_level = st.slider(
             "Confidence Level (%)",
@@ -82,48 +82,48 @@ def main():
             value=95,
             help="Confidence level for prediction intervals"
         )
-    
+
     # Validation
     if len(selected_products) > 10:
         st.error("⚠️ Please select maximum 10 products for performance reasons.")
         return
-    
+
     if not selected_products:
         st.warning("⚠️ Please select at least one product to forecast.")
         return
-    
+
     # Generate forecasts
-    if st.button("🚀 Generate Forecasts", type="primary", use_container_width=True):
-        
+    if st.button("🚀 Generate Forecasts", type="primary"):
+
         with st.spinner("Generating forecasts... This may take a few minutes."):
             forecasts = {}
             progress_bar = st.progress(0)
             status_text = st.empty()
-            
+
             for i, product in enumerate(selected_products):
                 status_text.text(f"Processing {product}... ({i+1}/{len(selected_products)})")
                 progress_bar.progress((i + 1) / len(selected_products))
-                
+
                 # Get product data
                 product_data = sales_data[sales_data['product_name'] == product].copy()
-                
+
                 # Check minimum data requirement
                 if len(product_data) < 30:
                     st.warning(f"⚠️ Insufficient data for {product} (minimum 30 days required, found {len(product_data)} days)")
                     continue
-                
+
                 # Generate forecast
                 try:
                     forecast_result = forecasting_engine.generate_forecast(
                         product_data, forecast_days, model_type, confidence_level
                     )
-                    
+
                     if forecast_result is not None:
                         forecasts[product] = forecast_result
-                        
+
                         # Save forecast to database
                         db.save_forecast(product, forecast_result)
-                        
+
                         # Save model performance
                         db.save_model_performance(
                             product, model_type,
@@ -133,26 +133,26 @@ def main():
                         )
                     else:
                         st.warning(f"⚠️ Could not generate forecast for {product}")
-                
+
                 except Exception as e:
                     st.error(f"❌ Error forecasting {product}: {str(e)}")
-            
+
             progress_bar.empty()
             status_text.empty()
-            
+
             if forecasts:
                 st.success(f"✅ Successfully generated forecasts for {len(forecasts)} products!")
-                
+
                 # Display forecasts
                 st.header("📈 Forecast Results")
-                
+
                 # Summary metrics
                 col1, col2, col3, col4 = st.columns(4)
-                
+
                 avg_accuracy = np.mean([f.get('accuracy', 0) for f in forecasts.values()])
                 total_forecast = sum([f['forecast']['predicted_quantity'].sum() for f in forecasts.values()])
                 avg_mape = np.mean([f.get('mape', 0) for f in forecasts.values()])
-                
+
                 with col1:
                     st.metric("Forecasts Generated", len(forecasts))
                 with col2:
@@ -161,19 +161,19 @@ def main():
                     st.metric("Total Forecasted Units", f"{total_forecast:,.0f}")
                 with col4:
                     st.metric("Average MAPE", f"{avg_mape:.1f}%")
-                
+
                 st.divider()
-                
+
                 # Individual product forecasts
                 for product, forecast_data in forecasts.items():
                     with st.expander(f"📦 {product} - Forecast Details", expanded=True):
-                        
+
                         col1, col2 = st.columns([3, 1])
-                        
+
                         with col1:
                             # Create forecast plot
                             fig = go.Figure()
-                            
+
                             # Historical data
                             historical = forecast_data['historical']
                             fig.add_trace(go.Scatter(
@@ -184,7 +184,7 @@ def main():
                                 line=dict(color='#1f77b4', width=2),
                                 marker=dict(size=4)
                             ))
-                            
+
                             # Forecast data
                             forecast = forecast_data['forecast']
                             fig.add_trace(go.Scatter(
@@ -195,7 +195,7 @@ def main():
                                 line=dict(color='#ff7f0e', width=2, dash='dash'),
                                 marker=dict(size=4)
                             ))
-                            
+
                             # Confidence intervals
                             if 'confidence_lower' in forecast.columns and 'confidence_upper' in forecast.columns:
                                 fig.add_trace(go.Scatter(
@@ -207,7 +207,7 @@ def main():
                                     name=f'{confidence_level}% Confidence Interval',
                                     showlegend=True
                                 ))
-                            
+
                             fig.update_layout(
                                 title=f'Sales Forecast for {product}',
                                 xaxis_title='Date',
@@ -215,39 +215,39 @@ def main():
                                 height=400,
                                 hovermode='x unified'
                             )
-                            
-                            st.plotly_chart(fig, use_container_width=True)
-                        
+
+                            st.plotly_chart(fig, width="stretch")
+
                         with col2:
                             # Forecast metrics
                             st.subheader("📊 Forecast Metrics")
-                            
+
                             avg_forecast = forecast['predicted_quantity'].mean()
                             total_forecast = forecast['predicted_quantity'].sum()
                             max_forecast = forecast['predicted_quantity'].max()
                             min_forecast = forecast['predicted_quantity'].min()
-                            
+
                             st.metric("Average Daily Forecast", f"{avg_forecast:.1f}")
                             st.metric("Total Period Forecast", f"{total_forecast:.0f}")
                             st.metric("Peak Day Forecast", f"{max_forecast:.1f}")
                             st.metric("Minimum Day Forecast", f"{min_forecast:.1f}")
-                            
+
                             st.subheader("🎯 Model Performance")
                             st.metric("Accuracy", f"{forecast_data.get('accuracy', 0):.1f}%")
                             st.metric("MAPE", f"{forecast_data.get('mape', 0):.2f}%")
                             st.metric("RMSE", f"{forecast_data.get('rmse', 0):.2f}")
                             st.metric("MAE", f"{forecast_data.get('mae', 0):.2f}")
-                        
+
                         # Forecast data table
                         st.subheader("📋 Detailed Forecast Data")
-                        
+
                         display_forecast = forecast[['date', 'predicted_quantity']].copy()
                         display_forecast['date'] = display_forecast['date'].dt.strftime('%Y-%m-%d')
                         display_forecast['predicted_quantity'] = display_forecast['predicted_quantity'].round(2)
                         display_forecast.columns = ['Date', 'Predicted Quantity']
-                        
-                        st.dataframe(display_forecast, use_container_width=True, height=200)
-                        
+
+                        st.dataframe(display_forecast, width="stretch", height=200)
+
                         # Export individual forecast
                         csv = display_forecast.to_csv(index=False)
                         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -258,11 +258,11 @@ def main():
                             mime="text/csv",
                             key=f"export_{product}"
                         )
-                
+
                 # Export all forecasts
                 st.divider()
                 col1, col2, col3 = st.columns(3)
-                
+
                 with col1:
                     if st.button("📥 Export All Forecasts", type="secondary"):
                         all_forecasts = []
@@ -272,7 +272,7 @@ def main():
                             forecast_df['model_type'] = forecast_data.get('model_type', model_type)
                             forecast_df['accuracy'] = forecast_data.get('accuracy', 0)
                             all_forecasts.append(forecast_df)
-                        
+
                         combined_forecasts = pd.concat(all_forecasts, ignore_index=True)
                         csv = combined_forecasts.to_csv(index=False)
                         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -282,11 +282,11 @@ def main():
                             file_name=f"all_forecasts_{timestamp}.csv",
                             mime="text/csv"
                         )
-                
+
                 with col2:
                     if st.button("📊 View Performance Summary", type="secondary"):
                         st.subheader("🎯 Model Performance Summary")
-                        
+
                         performance_data = []
                         for product, forecast_data in forecasts.items():
                             performance_data.append({
@@ -297,25 +297,25 @@ def main():
                                 'RMSE': f"{forecast_data.get('rmse', 0):.2f}",
                                 'MAE': f"{forecast_data.get('mae', 0):.2f}"
                             })
-                        
+
                         performance_df = pd.DataFrame(performance_data)
-                        st.dataframe(performance_df, use_container_width=True)
-                
+                        st.dataframe(performance_df, width="stretch")
+
                 with col3:
                     if st.button("🔄 Generate New Forecasts", type="secondary"):
                         st.rerun()
             else:
                 st.error("❌ No forecasts could be generated. Please check your data and try again.")
-    
+
     # Recent forecasts section
     st.divider()
     st.header("📊 Recent Forecasts")
-    
+
     recent_forecasts = db.get_recent_forecasts(20)
     if not recent_forecasts.empty:
         # Group by product and show latest forecast for each
         latest_forecasts = recent_forecasts.groupby('product_name').first().reset_index()
-        
+
         st.dataframe(
             latest_forecasts[['product_name', 'forecast_date', 'predicted_quantity', 'model_type', 'created_at']],
             column_config={
@@ -325,7 +325,7 @@ def main():
                 'model_type': 'Model',
                 'created_at': st.column_config.DatetimeColumn('Generated At')
             },
-            use_container_width=True
+            width="stretch"
         )
     else:
         st.info("No recent forecasts available. Generate some forecasts to see them here.")
