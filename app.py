@@ -66,9 +66,9 @@ def init_components():
 def format_currency(amount):
     """Format currency values"""
     try:
-        return f"${amount:,.2f}"
+        return f"₹{amount:,.2f}"
     except:
-        return "$0.00"
+        return "₹0.00"
 
 def main():
     # Initialize components
