@@ -121,5 +121,4 @@ Optional: price, category, store_id. The app derives revenue and calendar fields
 - MySQL auth plugin errors: ensure your user uses `mysql_native_password` or a compatible plugin.
 - SSL/timeout issues: add query params to `DATABASE_URL` as needed, e.g. `?charset=utf8mb4`.
 
-## License
-Internal project. Update as needed.
+
