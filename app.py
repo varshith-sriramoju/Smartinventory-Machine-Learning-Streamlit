@@ -23,7 +23,7 @@ from utils.inventory_optimization import InventoryOptimizer
 
 # Page configuration
 st.set_page_config(
-    page_title="Varshith's SmartInventory - Retail Forecasting Platform",
+    page_title="SmartInventory - Retail Forecasting Platform",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -81,7 +81,7 @@ def main():
     st.session_state.inventory_optimizer = inventory_optimizer
 
     # Header
-    st.title("🏪 SmartInventory - Retail Forecasting Platform")
+    st.title("🏪Varshith's SmartInventory - Retail Forecasting Platform")
     st.markdown("**Advanced inventory management and demand forecasting for retail businesses**")
     st.markdown("---")
 
