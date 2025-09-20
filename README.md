@@ -120,5 +120,3 @@ Optional: price, category, store_id. The app derives revenue and calendar fields
 - Access from other devices: set `address = "0.0.0.0"` and allow Windows Firewall.
 - MySQL auth plugin errors: ensure your user uses `mysql_native_password` or a compatible plugin.
 - SSL/timeout issues: add query params to `DATABASE_URL` as needed, e.g. `?charset=utf8mb4`.
-
-
